@@ -1,6 +1,10 @@
 import { EditorId, type ResolvedKeybindingsConfig } from "@t3tools/contracts";
 import { memo, useCallback, useEffect, useMemo } from "react";
-import { isOpenFavoriteEditorShortcut, shortcutLabelForCommand } from "../../keybindings";
+import {
+  isOpenFavoriteEditorShortcut,
+  isOpenIntellijShortcut,
+  shortcutLabelForCommand,
+} from "../../keybindings";
 import { usePreferredEditor } from "../../editorPreferences";
 import { ChevronDownIcon, FolderClosedIcon } from "lucide-react";
 import { Button } from "../ui/button";
@@ -106,15 +110,24 @@ export const OpenInPicker = memo(function OpenInPicker({
     [keybindings],
   );
 
+  const openIntellijEditorShortcutLabel = useMemo(
+    () => shortcutLabelForCommand(keybindings, "editor.openIntellij"),
+    [keybindings],
+  );
+
   useEffect(() => {
     const handler = (e: globalThis.KeyboardEvent) => {
       const api = readNativeApi();
-      if (!isOpenFavoriteEditorShortcut(e, keybindings)) return;
       if (!api || !openInCwd) return;
-      if (!preferredEditor) return;
 
-      e.preventDefault();
-      void api.shell.openInEditor(openInCwd, preferredEditor);
+      if (isOpenFavoriteEditorShortcut(e, keybindings)) {
+        if (!preferredEditor) return;
+        e.preventDefault();
+        void api.shell.openInEditor(openInCwd, preferredEditor);
+      } else if (isOpenIntellijShortcut(e, keybindings)) {
+        e.preventDefault();
+        void api.shell.openInEditor(openInCwd, "idea");
+      }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
@@ -146,6 +159,9 @@ export const OpenInPicker = memo(function OpenInPicker({
               {label}
               {value === preferredEditor && openFavoriteEditorShortcutLabel && (
                 <MenuShortcut>{openFavoriteEditorShortcutLabel}</MenuShortcut>
+              )}
+              {value === "idea" && openIntellijEditorShortcutLabel && (
+                <MenuShortcut>{openIntellijEditorShortcutLabel}</MenuShortcut>
               )}
             </MenuItem>
           ))}

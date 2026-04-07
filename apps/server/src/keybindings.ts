@@ -64,7 +64,7 @@ export const DEFAULT_KEYBINDINGS: ReadonlyArray<KeybindingRule> = [
   { key: "mod+n", command: "chat.new", when: "!terminalFocus" },
   { key: "mod+shift+o", command: "chat.new", when: "!terminalFocus" },
   { key: "mod+shift+n", command: "chat.newLocal", when: "!terminalFocus" },
-  { key: "mod+o", command: "editor.openFavorite" },
+  { key: "mod+o", command: "editor.openIntellij" },
   { key: "mod+shift+[", command: "thread.previous" },
   { key: "mod+shift+]", command: "thread.next" },
   ...THREAD_JUMP_KEYBINDING_COMMANDS.map((command, index) => ({
@@ -711,7 +711,7 @@ const makeKeybindings = Effect.gen(function* () {
     Effect.gen(function* () {
       const configExists = yield* readConfigExists;
       if (!configExists) {
-        yield* writeConfigAtomically(DEFAULT_KEYBINDINGS);
+        yield* writeConfigAutomically(DEFAULT_KEYBINDINGS);
         yield* Cache.invalidate(resolvedConfigCache, resolvedConfigCacheKey);
         return;
       }
@@ -792,7 +792,7 @@ const makeKeybindings = Effect.gen(function* () {
         });
       }
 
-      yield* writeConfigAtomically(cappedConfig);
+      yield* writeConfigAutomically(cappedConfig);
       yield* Cache.invalidate(resolvedConfigCache, resolvedConfigCacheKey);
     }),
   );
